@@ -1,0 +1,7 @@
+Clone my repo:
+
+git push git://github.com/bosha/wmiirc
+
+And place all folder content to ~/.wmii-hg.
+
+Note that you should have intalled mercurial version of wmii.
