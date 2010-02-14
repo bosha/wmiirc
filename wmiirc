@@ -1,4 +1,5 @@
-#!/bin/dash -f
+#!/bin/bash
+
 # Configure wmii
 wmiiscript=wmiirc # For wmii.sh
 . wmii.sh
@@ -10,31 +11,18 @@ DOWN=j
 LEFT=h
 RIGHT=l
 
-# Scripts
-LAUNCH=$HOME/bin/wmii-launch.sh
-
 # Bars
 noticetimeout=5
 noticebar=/rbar/!notice
 
-WMII_FOCUSCOLORS='#000000 #bbc5ff #000000'
-WMII_BACKGROUND='#ddeedd'
-WMII_NORMCOLORS='#000000 #f8f8f4 #000000' 
-
 # Colors tuples: "<text> <background> <border>"
-# Default colors
-#WMII_NORMCOLORS='#000000 #c1c48b #81654f'
-#WMII_FOCUSCOLORS='#000000 #81654f #000000'
+WMII_FOCUSCOLORS='#eeeeee #506070 #708090'
 #WMII_BACKGROUND='#333333'
+WMII_NORMCOLORS='#bbbbbb #222222 #000000' 
+WMII_BARCOLORS='#ee9a00 #222222 #000000'
 
-# Gray & Green colors
-WMII_FOCUSCOLORS='#A0FF00 #686363 #8c8c8c'
-WMII_BACKGROUND='#333333'
-WMII_NORMCOLORS='#e0e0e0 #444444 #666666' 
-
+# Set font
 WMII_FONT='xft:Terminus:style=Bold:size=8'
-#WMII_FONT='Terminus:style=Bold:size=8'
-#WMII_FONT='Terminus:size=8'
 set -- $(echo $WMII_NORMCOLORS $WMII_FOCUSCOLORS)
 WMII_TERM="urxvt"
 WMII_MENU='dmenu -b -fn "$WMII_FONT" -nf '"'$1' -nb '$2' -sf '$4' -sb '$5'"
@@ -43,10 +31,10 @@ WMII_MENU='dmenu -b -fn "$WMII_FONT" -nf '"'$1' -nb '$2' -sf '$4' -sb '$5'"
 hist="$(wmiir namespace)/history"
 histnum=5000
 
-# Column Rules
 wmiir write /colrules <<!
 /gimp/ -> 17+83+41
 /.*/ -> 50+50 # Golden Ratio
+# Column Rules
 !
 
 # Tagging Rules
@@ -54,15 +42,10 @@ wmiir write /tagrules <<!
 /Vlc/ -> ~
 /SMPlayer/ -> ~
 /Firefox/ -> 1.www
-/Thunderbird/ -> 1.www
-/Opera/ -> 1.www
-/Chromium/ -> 1.www
 /Psi+/ -> 2.im
 /Pidgin/ -> 2.im
 /qutIM/ -> 2.im
 /gmcabber/ -> 2.im
-/urxvt/ -> 3.term
-#/terminator/ -> 3.term
 /gweechat/ -> 4.irc
 /osmo/ -> osmo
 /Deluge/ -> 5.p2p
@@ -73,14 +56,52 @@ wmiir write /tagrules <<!
 /DjView/ -> 8.text
 /Mozilla Thunderbird/ -> mail
 /Thunderbird/ -> mail
+/VirtualBox/ -> vb
 #/.*/ -> 9.misc
 !
 
-status() {
-    echo -n ' │ | Mess: '$(cat /home/bosha/.mcabber/unread)'│ '$(date +'%a %d %b %H:%M') '│' 
-}  
+# Read all tags
+read_tags() {
+    wmiir ls /tag | sed -e 's|/||; /^sel$/d'
+}
 
-local_events() { true;}
+# Go to next tag
+next_tag() {
+    CTAG=$(wmiir read /tag/sel/ctl)
+    FTAG=$(read_tags | line)
+    LTAG=$(read_tags | tail -n 1)
+    if [ "$CTAG" = "$LTAG" ]; then
+        echo -n $FTAG
+    else
+        read_tags | grep -A1 $CTAG | tail -n 1
+    fi 
+}
+ 
+# Go to previous tag
+prev_tag() {
+    CTAG=$(wmiir read /tag/sel/ctl)
+    FTAG=$(read_tags | line)
+    LTAG=$(read_tags | tail -n 1)
+    if [ "$CTAG" = "$FTAG" ]; then
+        echo -n $LTAG
+    else
+        read_tags | grep -B1 $CTAG | line
+    fi 
+}
+
+# Creating bar elements
+echo $WMII_BARCOLORS | wmiir create /rbar/skb 
+echo $WMII_BARCOLORS | wmiir create /rbar/date
+
+# Load some information to bars
+status () {
+    echo -n $(date +'%a %d %b %H:%M') | wmiir write /rbar/date
+    echo -n $(/usr/bin/skb -1)        | wmiir write /rbar/skb
+}
+
+local_events() { 
+    true;
+}
 wi_runconf -s wmiirc_local
 
 echo $WMII_NORMCOLORS | wmiir create $noticebar
@@ -105,7 +126,8 @@ events() {
         wmiir xwrite "/lbar/$@" "$@"
     Event LeftBarClick LeftBarDND
         shift
-        $LAUNCH "$@"
+        #$LAUNCH "$@"
+        wmiir xwrite /ctl view "$@"
     Event Unresponsive
         {
             client=$1; shift
@@ -158,11 +180,7 @@ events() {
         proglist $PATH >$progsfile
     Action status
         set +xv
-        if wmiir remove /rbar/status 2>/dev/null; then
-            sleep 2
-        fi
-        echo "$WMII_NORMCOLORS" | wmiir create /rbar/status
-        while status | wmiir write /rbar/status; do
+        while status | status; do
             sleep 1
         done
     # Key Bindings
@@ -200,9 +218,10 @@ events() {
     Key $MODKEY-t
         wmiir xwrite /ctl view $(wi_tags | wimenu -h "${hist}.tags" -n 50) &
     Key $MODKEY-Return
-         CURPATH=`wmiir read /client/sel/label | sed 's/.*: //'`
-                 [[ -d $CURPATH ]] && cd $CURPATH
-         eval $LAUNCH 3 $WMII_TERM &
+         #CURPATH=`wmiir read /client/sel/label | sed 's/.*: //'`
+         #        [[ -d $CURPATH ]] && cd $CURPATH
+         #eval $LAUNCH 3 $WMII_TERM &
+         eval urxvt &
     Key $MODKEY-Shift-space
         wmiir xwrite /tag/sel/ctl send sel toggle
     Key $MODKEY-f
@@ -235,6 +254,11 @@ events() {
                 wmiir xwrite /tag/sel/ctl nudge sel sel up
     Key $MODKEY-Control-$DOWN
                 wmiir xwrite /tag/sel/ctl nudge sel sel down 
+    # Broken functions
+    Key $MODKEY-i
+        wmiir xwrite /ctl view $(prev_tag)
+    Key $MODKEY-o
+        wmiir xwrite /ctl view $(next_tag)
     Key $MODKEY-Shift-q
         echo -n 1.www+2.im+3.term+4.irc+6.file+7.song+9.misc | wmiir write /client/sel/tags
 
@@ -242,10 +266,52 @@ events() {
     for i in 0 1 2 3 4 5 6 7 8 9; do
         sed 's/^    //' <<!
     Key $MODKEY-$i
-        $LAUNCH "$i"
+        case $i in
+            "0.zero"|0)
+                wmiir xwrite /ctl view "0.zero"
+                $2 >> /dev/null &
+                ;;
+            "1.www"|1)
+                wmiir xwrite /ctl view "1.www" 
+                $2 >> /dev/null &
+                ;;
+            "2.im"|2)
+                wmiir xwrite /ctl view "2.im"
+                $2 >> /dev/null &
+                ;;
+            "3.term"|3)
+                wmiir xwrite /ctl view "3.term"
+                $2 >> /dev/null &
+                ;;
+            "4.irc"|4)
+                wmiir xwrite /ctl view "4.irc"
+                $2 >> /dev/null &
+                ;;
+            "5.osmo"|5)
+                wmiir xwrite /ctl view "5.osmo"
+                $2 >> /dev/null &
+                ;;
+            "6.file"|6)
+                wmiir xwrite /ctl view "6.file"
+                $2 >> /dev/null &
+                ;;
+            "7.song"|7)
+                wmiir xwrite /ctl view "7.song"
+                $2 >> /dev/null &
+                ;;
+            "8.text"|8)
+                wmiir xwrite /ctl view "8.text"
+                $2 >> /dev/null &
+                ;;
+            "9.misc"|9)
+                wmiir xwrite /ctl view "9.misc"
+                $2 >> /dev/null &
+                ;;
+        esac 
 !
     done
 }
+
 wi_events <<!
 $(events)
 $(local_events)
@@ -259,19 +325,14 @@ wmiir write /ctl <<!
     focuscolors $WMII_FOCUSCOLORS
     normcolors $WMII_NORMCOLORS
     grabmod $MODKEY
-    border 0
+    border 1
 !
 
-#xsetroot -solid "$WMII_BACKGROUND" &
+# Open the first tag
+wmiir xwrite /ctl view "1.www" 
 
-#conky &
-#gweechat &
-#gmcabber &
-#gncmpcpp &
-#osmo     &
-#firefox  &
-
-#$LAUNCH 4 $WMII_TERM &
+# Run apps if want
+# firefox &
 
 export WMII_FONT WMII_TERM
 export WMII_FOCUSCOLORS WMII_SELCOLORS WMII_NORMCOLORS
@@ -282,6 +343,9 @@ action status &
 wi_proglist $PATH >$progsfile &
 
 # Setup Tag Bar
+
+# Placing bar to top.
+wmiir xwrite /ctl bar on top
 IFS="$wi_nl"
 wmiir rm $(wmiir ls /lbar | sed 's,^,/lbar/,') >/dev/null
 seltag=$(wmiir read /tag/sel/ctl | sed 1q)
@@ -296,4 +360,3 @@ do
 done
 
 wi_eventloop
-
