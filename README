@@ -5,3 +5,18 @@ git push git://github.com/bosha/wmiirc
 And place all folder content to ~/.wmii-hg.
 
 Note that you should have intalled mercurial version of wmii.
+
+----------------------------------------------------------------------------
+Changelog:
+---------------------------------------------------------------------------
+
+Commit 14.02.2010
+
+    * Removed wmii-launch.sh from script
+    * Now can change any tag by press the tag name on the bar
+    * Changed colorscheme
+    * Removed Mcabber new messages bar (I plan to make urgency hook for that)
+    * Added functional, to create many information bars, with different colours
+
+    Broken:
+    * Functions Next\Prev tags still broken, and i don't know why. 
