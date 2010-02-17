@@ -21,6 +21,9 @@ WMII_FOCUSCOLORS='#eeeeee #506070 #708090'
 WMII_NORMCOLORS='#bbbbbb #222222 #000000' 
 WMII_BARCOLORS='#ee9a00 #222222 #000000'
 
+# Tag's array
+TAGS=("0.zero" "1.www" "2.im" "3.term" "4.irc" "5.p2p" "6.file" "7.song" "8.text" "9.misc")
+
 # Set font
 WMII_FONT='xft:Terminus:style=Bold:size=8'
 set -- $(echo $WMII_NORMCOLORS $WMII_FOCUSCOLORS)
@@ -49,7 +52,7 @@ wmiir write /tagrules <<!
 /gweechat/ -> 4.irc
 /osmo/ -> osmo
 /Deluge/ -> 5.p2p
-/ROX-Filer/ -> 6.file
+/pcmanfm/ -> ~
 /Sonata/ -> 7.song
 /gncmpcpp/ -> 7.song
 /OpenOffice.org 3.1/ -> 8.text
@@ -60,12 +63,17 @@ wmiir write /tagrules <<!
 #/.*/ -> 9.misc
 !
 
-# Read all tags
+# Function to run app correctly
+run_app() {
+if ! ps -C $1>/dev/null; then
+    $1 &
+fi
+} 
+
 read_tags() {
     wmiir ls /tag | sed -e 's|/||; /^sel$/d'
 }
 
-# Go to next tag
 next_tag() {
     CTAG=$(wmiir read /tag/sel/ctl)
     FTAG=$(read_tags | line)
@@ -77,7 +85,6 @@ next_tag() {
     fi 
 }
  
-# Go to previous tag
 prev_tag() {
     CTAG=$(wmiir read /tag/sel/ctl)
     FTAG=$(read_tags | line)
@@ -95,8 +102,8 @@ echo $WMII_BARCOLORS | wmiir create /rbar/date
 
 # Load some information to bars
 status () {
-    echo -n $(date +'%a %d %b %H:%M') | wmiir write /rbar/date
     echo -n $(/usr/bin/skb -1)        | wmiir write /rbar/skb
+    echo -n $(date +'%a %d %b %H:%M') | wmiir write /rbar/date
 }
 
 local_events() { 
@@ -260,54 +267,15 @@ events() {
     Key $MODKEY-o
         wmiir xwrite /ctl view $(next_tag)
     Key $MODKEY-Shift-q
-        echo -n 1.www+2.im+3.term+4.irc+6.file+7.song+9.misc | wmiir write /client/sel/tags
+        echo -n 1.www+2.im+3.term+4.irc+6.file+7.song+8.text+9.misc | wmiir write /client/sel/tags
 
 !
     for i in 0 1 2 3 4 5 6 7 8 9; do
-        sed 's/^    //' <<!
-    Key $MODKEY-$i
-        case $i in
-            "0.zero"|0)
-                wmiir xwrite /ctl view "0.zero"
-                $2 >> /dev/null &
-                ;;
-            "1.www"|1)
-                wmiir xwrite /ctl view "1.www" 
-                $2 >> /dev/null &
-                ;;
-            "2.im"|2)
-                wmiir xwrite /ctl view "2.im"
-                $2 >> /dev/null &
-                ;;
-            "3.term"|3)
-                wmiir xwrite /ctl view "3.term"
-                $2 >> /dev/null &
-                ;;
-            "4.irc"|4)
-                wmiir xwrite /ctl view "4.irc"
-                $2 >> /dev/null &
-                ;;
-            "5.osmo"|5)
-                wmiir xwrite /ctl view "5.osmo"
-                $2 >> /dev/null &
-                ;;
-            "6.file"|6)
-                wmiir xwrite /ctl view "6.file"
-                $2 >> /dev/null &
-                ;;
-            "7.song"|7)
-                wmiir xwrite /ctl view "7.song"
-                $2 >> /dev/null &
-                ;;
-            "8.text"|8)
-                wmiir xwrite /ctl view "8.text"
-                $2 >> /dev/null &
-                ;;
-            "9.misc"|9)
-                wmiir xwrite /ctl view "9.misc"
-                $2 >> /dev/null &
-                ;;
-        esac 
+    sed 's/^    //' <<!
+    Key $MODKEY-$i # Select Tag
+        wmiir xwrite /ctl view ${TAGS[$i]}
+    Key $MODKEY-Shift-$i # Retag selected application
+        wmiir xwrite /client/sel/tags ${TAGS[$i]} 
 !
     done
 }
@@ -332,7 +300,11 @@ wmiir write /ctl <<!
 wmiir xwrite /ctl view "1.www" 
 
 # Run apps if want
-# firefox &
+run_app firefox
+run_app xxkb
+run_app deluge
+run_app osmo
+run_app thunderbird
 
 export WMII_FONT WMII_TERM
 export WMII_FOCUSCOLORS WMII_SELCOLORS WMII_NORMCOLORS
@@ -346,6 +318,7 @@ wi_proglist $PATH >$progsfile &
 
 # Placing bar to top.
 wmiir xwrite /ctl bar on top
+
 IFS="$wi_nl"
 wmiir rm $(wmiir ls /lbar | sed 's,^,/lbar/,') >/dev/null
 seltag=$(wmiir read /tag/sel/ctl | sed 1q)
