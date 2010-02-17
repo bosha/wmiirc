@@ -15,6 +15,7 @@ Commit 17.02.2010
     * Created tag array to simply change tag names
     * Added «retag» functions
     * Added run_app()
+    * Added next\prev functions
 
 Commit 14.02.2010
 
@@ -23,6 +24,3 @@ Commit 14.02.2010
     * Changed colorscheme
     * Removed Mcabber new messages bar (I plan to make urgency hook for that)
     * Added functional, to create many information bars, with different colours
-
-    Broken:
-    * Functions Next\Prev tags still broken, and i don't know why. 
