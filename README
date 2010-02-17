@@ -16,6 +16,7 @@ Commit 17.02.2010
     * Added «retag» functions
     * Added run_app()
     * Added next\prev functions
+    * Added function to place selected window to exist tags
 
 Commit 14.02.2010
 
