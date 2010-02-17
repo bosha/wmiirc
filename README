@@ -10,6 +10,12 @@ Note that you should have intalled mercurial version of wmii.
 Changelog:
 ---------------------------------------------------------------------------
 
+Commit 17.02.2010
+
+    * Created tag array to simply change tag names
+    * Added «retag» functions
+    * Added run_app()
+
 Commit 14.02.2010
 
     * Removed wmii-launch.sh from script
