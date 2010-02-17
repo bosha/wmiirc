@@ -70,12 +70,14 @@ if ! ps -C $1>/dev/null; then
 fi
 } 
 
+# List all tags
 read_tags() {
     wmiir ls /tag | sed -e 's|/||; /^sel$/d'
 }
 
+# Go to next tag
 next_tag() {
-    CTAG=$(wmiir read /tag/sel/ctl)
+    CTAG=$(wmiir read /tag/sel/ctl | line)
     FTAG=$(read_tags | line)
     LTAG=$(read_tags | tail -n 1)
     if [ "$CTAG" = "$LTAG" ]; then
@@ -85,8 +87,9 @@ next_tag() {
     fi 
 }
  
+# Go to prev tag
 prev_tag() {
-    CTAG=$(wmiir read /tag/sel/ctl)
+    CTAG=$(wmiir read /tag/sel/ctl | line)
     FTAG=$(read_tags | line)
     LTAG=$(read_tags | tail -n 1)
     if [ "$CTAG" = "$FTAG" ]; then
@@ -262,9 +265,9 @@ events() {
     Key $MODKEY-Control-$DOWN
                 wmiir xwrite /tag/sel/ctl nudge sel sel down 
     # Broken functions
-    Key $MODKEY-i
+    Key $MODKEY-x
         wmiir xwrite /ctl view $(prev_tag)
-    Key $MODKEY-o
+    Key $MODKEY-c
         wmiir xwrite /ctl view $(next_tag)
     Key $MODKEY-Shift-q
         echo -n 1.www+2.im+3.term+4.irc+6.file+7.song+8.text+9.misc | wmiir write /client/sel/tags
