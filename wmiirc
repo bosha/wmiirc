@@ -70,6 +70,19 @@ if ! ps -C $1>/dev/null; then
 fi
 } 
 
+# 
+used_tags() {
+    ATAGS=`wmiir ls /tag | sed -e 's|/||; /^sel$/d'`
+
+    for CTAG in $ATAGS
+    do
+        LTAGS="$LTAGS"+"$CTAG"
+        continue
+    done
+    
+    echo $LTAGS | cut -c 2-
+}
+
 # List all tags
 read_tags() {
     wmiir ls /tag | sed -e 's|/||; /^sel$/d'
@@ -270,7 +283,8 @@ events() {
     Key $MODKEY-c
         wmiir xwrite /ctl view $(next_tag)
     Key $MODKEY-Shift-q
-        echo -n 1.www+2.im+3.term+4.irc+6.file+7.song+8.text+9.misc | wmiir write /client/sel/tags
+        #echo -n 1.www+2.im+3.term+4.irc+6.file+7.song+8.text+9.misc | wmiir write /client/sel/tags
+        echo -n $(used_tags) | wmiir write /client/sel/tags
 
 !
     for i in 0 1 2 3 4 5 6 7 8 9; do
