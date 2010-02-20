@@ -1,4 +1,8 @@
 #!/bin/bash
+# ------------------------------
+# Wmii-hg configuration file
+# Original author: bosha - http://the-bosha.ru
+#-------------------------------
 
 # Configure wmii
 wmiiscript=wmiirc # For wmii.sh
@@ -113,6 +117,7 @@ prev_tag() {
 }
 
 # Creating bar elements
+# Ofcouse you can change colors =]
 echo $WMII_BARCOLORS | wmiir create /rbar/skb 
 echo $WMII_BARCOLORS | wmiir create /rbar/date
 
@@ -210,11 +215,11 @@ events() {
     Key Menu
         eval apwal &
     Key $MODKEY-F7
-        eval mpc toggle & 
+        eval cmus-remote -p &
     Key $MODKEY-F8
-        eval mpc prev &
+        eval cmus-remote -r &
     Key $MODKEY-F9
-        eval mpc next &
+        eval cmus-remote -n &
     Key $MODKEY-Control-t
         case $(wmiir read /keys | wc -l | tr -d ' \t\n') in
         0|1)
@@ -277,13 +282,14 @@ events() {
                 wmiir xwrite /tag/sel/ctl nudge sel sel up
     Key $MODKEY-Control-$DOWN
                 wmiir xwrite /tag/sel/ctl nudge sel sel down 
-    # Broken functions
+    # Previous Tag
     Key $MODKEY-x
         wmiir xwrite /ctl view $(prev_tag)
+    # Next tag
     Key $MODKEY-c
         wmiir xwrite /ctl view $(next_tag)
+    # Place selected window to all exist tags
     Key $MODKEY-Shift-q
-        #echo -n 1.www+2.im+3.term+4.irc+6.file+7.song+8.text+9.misc | wmiir write /client/sel/tags
         echo -n $(used_tags) | wmiir write /client/sel/tags
 
 !
