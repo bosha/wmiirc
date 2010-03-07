@@ -10,6 +10,12 @@ Note that you should have intalled mercurial version of wmii.
 Changelog:
 ---------------------------------------------------------------------------
 
+Commit 07.03.2010
+    
+    * Changed fonts
+    * Wmii bar elements will create in certain sequence
+    * Added some information to head of configuration file
+
 Commit 17.02.2010
 
     * Created tag array to simply change tag names
