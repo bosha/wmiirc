@@ -1,8 +1,14 @@
 #!/bin/bash
-# ------------------------------
-# Wmii-hg configuration file
-# Original author: bosha - http://the-bosha.ru
-#-------------------------------
+# ----------------------------------------------------------
+# Wmii configuration file by bosha - http://the-bosha.ru
+# For more information please visit cite above. 
+# Also there you can find articles about wmii (In Russian)
+# And my contact information
+# If you find any bug, before contact me, please, check
+# what you using wmii-3.9, or mercurial version.
+#
+# Enjoy ;3
+# ----------------------------------------------------------
 
 # Configure wmii
 wmiiscript=wmiirc # For wmii.sh
@@ -26,10 +32,13 @@ WMII_NORMCOLORS='#bbbbbb #222222 #000000'
 WMII_BARCOLORS='#ee9a00 #222222 #000000'
 
 # Tag's array
-TAGS=("0.zero" "1.www" "2.im" "3.term" "4.irc" "5.p2p" "6.file" "7.song" "8.text" "9.misc")
+TAGS=("0.zero" "1.www" "2.im" "3.term" "4.code" "5.p2p" "6.file" "7.song" "8.text" "9.misc")
 
 # Set font
-WMII_FONT='xft:Terminus:style=Bold:size=8'
+#WMII_FONT='xft:Terminus:style=Bold:size=10'
+#WMII_FONT='xtf:Droid Sans:size=9'
+#WMII_FONT='xft:Droid:size=8'
+WMII_FONT='xft:Monospace:size=9:style=Regular'
 set -- $(echo $WMII_NORMCOLORS $WMII_FOCUSCOLORS)
 WMII_TERM="urxvt"
 WMII_MENU='dmenu -b -fn "$WMII_FONT" -nf '"'$1' -nb '$2' -sf '$4' -sb '$5'"
@@ -53,10 +62,12 @@ wmiir write /tagrules <<!
 /Pidgin/ -> 2.im
 /qutIM/ -> 2.im
 /gmcabber/ -> 2.im
+/Tkabber/ -> 2.im
 /gweechat/ -> 4.irc
 /osmo/ -> osmo
 /Deluge/ -> 5.p2p
 /pcmanfm/ -> ~
+/Просмотр\ изображений/ -> ~
 /Sonata/ -> 7.song
 /gncmpcpp/ -> 7.song
 /OpenOffice.org 3.1/ -> 8.text
@@ -64,6 +75,7 @@ wmiir write /tagrules <<!
 /Mozilla Thunderbird/ -> mail
 /Thunderbird/ -> mail
 /VirtualBox/ -> vb
+/TuxGuitar/ -> tuxg
 #/.*/ -> 9.misc
 !
 
@@ -74,7 +86,7 @@ if ! ps -C $1>/dev/null; then
 fi
 } 
 
-# 
+# List all used tags
 used_tags() {
     ATAGS=`wmiir ls /tag | sed -e 's|/||; /^sel$/d'`
 
@@ -92,7 +104,7 @@ read_tags() {
     wmiir ls /tag | sed -e 's|/||; /^sel$/d'
 }
 
-# Go to next tag
+# Go to the next tag
 next_tag() {
     CTAG=$(wmiir read /tag/sel/ctl | line)
     FTAG=$(read_tags | line)
@@ -117,14 +129,20 @@ prev_tag() {
 }
 
 # Creating bar elements
-# Ofcouse you can change colors =]
-echo $WMII_BARCOLORS | wmiir create /rbar/skb 
-echo $WMII_BARCOLORS | wmiir create /rbar/date
+# Don't rename bar names to other. If do that, then bar elements 
+# will be created in chaotic sequence
+# 1 - skb
+# 2 - weather
+# 3 - date
+echo $WMII_BARCOLORS | wmiir create /rbar/1
+echo $WMII_BARCOLORS | wmiir create /rbar/2
+echo $WMII_BARCOLORS | wmiir create /rbar/3
 
 # Load some information to bars
 status () {
-    echo -n $(/usr/bin/skb -1)        | wmiir write /rbar/skb
-    echo -n $(date +'%a %d %b %H:%M') | wmiir write /rbar/date
+    echo -n $(/usr/bin/skb -1)          | wmiir write /rbar/1
+    echo -n $(cat /tmp/.google_weather) | wmiir write /rbar/2
+    echo -n $(date +'%a %d %b %H:%M')   | wmiir write /rbar/3
 }
 
 local_events() { 
@@ -215,11 +233,11 @@ events() {
     Key Menu
         eval apwal &
     Key $MODKEY-F7
-        eval cmus-remote -p &
+        eval mpc toggle & 
     Key $MODKEY-F8
-        eval cmus-remote -r &
+        eval mpc prev &
     Key $MODKEY-F9
-        eval cmus-remote -n &
+        eval mpc next &
     Key $MODKEY-Control-t
         case $(wmiir read /keys | wc -l | tr -d ' \t\n') in
         0|1)
@@ -246,9 +264,6 @@ events() {
     Key $MODKEY-t
         wmiir xwrite /ctl view $(wi_tags | wimenu -h "${hist}.tags" -n 50) &
     Key $MODKEY-Return
-         #CURPATH=`wmiir read /client/sel/label | sed 's/.*: //'`
-         #        [[ -d $CURPATH ]] && cd $CURPATH
-         #eval $LAUNCH 3 $WMII_TERM &
          eval urxvt &
     Key $MODKEY-Shift-space
         wmiir xwrite /tag/sel/ctl send sel toggle
@@ -282,13 +297,10 @@ events() {
                 wmiir xwrite /tag/sel/ctl nudge sel sel up
     Key $MODKEY-Control-$DOWN
                 wmiir xwrite /tag/sel/ctl nudge sel sel down 
-    # Previous Tag
     Key $MODKEY-x
         wmiir xwrite /ctl view $(prev_tag)
-    # Next tag
     Key $MODKEY-c
         wmiir xwrite /ctl view $(next_tag)
-    # Place selected window to all exist tags
     Key $MODKEY-Shift-q
         echo -n $(used_tags) | wmiir write /client/sel/tags
 
@@ -324,10 +336,12 @@ wmiir xwrite /ctl view "1.www"
 
 # Run apps if want
 run_app firefox
-run_app xxkb
+# xxkb broken. I don't know why them won't work"
+#run_app xxkb
 run_app deluge
 run_app osmo
 run_app thunderbird
+run_app tkabber
 
 export WMII_FONT WMII_TERM
 export WMII_FOCUSCOLORS WMII_SELCOLORS WMII_NORMCOLORS
