@@ -10,6 +10,11 @@ Note that you should have intalled mercurial version of wmii.
 Changelog:
 ---------------------------------------------------------------------------
 
+Commit 13.03.2010
+
+    * Change colors and fonts
+    * Function to place window to exist tags are toggle now
+
 Commit 07.03.2010
     
     * Changed fonts
