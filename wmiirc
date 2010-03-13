@@ -8,7 +8,7 @@
 # what you using wmii-3.9, or mercurial version.
 #
 # Enjoy ;3
-# ----------------------------------------------------------
+# ---------------------------------------------------------- 
 
 # Configure wmii
 wmiiscript=wmiirc # For wmii.sh
@@ -26,10 +26,11 @@ noticetimeout=5
 noticebar=/rbar/!notice
 
 # Colors tuples: "<text> <background> <border>"
-WMII_FOCUSCOLORS='#eeeeee #506070 #708090'
-#WMII_BACKGROUND='#333333'
+# My Colors
+#WMII_FOCUSCOLORS='#eeeeee #506070 #708090'
+WMII_FOCUSCOLORS='#FFF5EE #686363 #708090'
 WMII_NORMCOLORS='#bbbbbb #222222 #000000' 
-WMII_BARCOLORS='#ee9a00 #222222 #000000'
+WMII_BARCOLORS='#CCFF33 #222222 #000000'
 
 # Tag's array
 TAGS=("0.zero" "1.www" "2.im" "3.term" "4.code" "5.p2p" "6.file" "7.song" "8.text" "9.misc")
@@ -128,6 +129,18 @@ prev_tag() {
     fi 
 }
 
+# Function to place one window to all exist tags (toggle)
+# Just get window title, and if found +, then place this window only
+# on current tag
+exist_tags() {
+    if echo `wmiir read /client/sel/tags` | grep + &> /dev/null ; then
+        echo -n `wmiir read /ctl | grep view | awk '{print $2}'` | wmiir write /client/sel/tags
+    else
+        echo -n $(used_tags) | wmiir write /client/sel/tags 
+    fi
+}
+
+# {{{{{
 # Creating bar elements
 # Don't rename bar names to other. If do that, then bar elements 
 # will be created in chaotic sequence
@@ -144,6 +157,7 @@ status () {
     echo -n $(cat /tmp/.google_weather) | wmiir write /rbar/2
     echo -n $(date +'%a %d %b %H:%M')   | wmiir write /rbar/3
 }
+# }}}}}
 
 local_events() { 
     true;
@@ -297,18 +311,23 @@ events() {
                 wmiir xwrite /tag/sel/ctl nudge sel sel up
     Key $MODKEY-Control-$DOWN
                 wmiir xwrite /tag/sel/ctl nudge sel sel down 
+    # Prev exist tag
     Key $MODKEY-x
         wmiir xwrite /ctl view $(prev_tag)
+    # Next exist tag
     Key $MODKEY-c
         wmiir xwrite /ctl view $(next_tag)
+    # Show current frame\window at all exist tags
     Key $MODKEY-Shift-q
-        echo -n $(used_tags) | wmiir write /client/sel/tags
+        #echo -n $(used_tags) | wmiir write /client/sel/tags
+        $(exist_tags)
 
 !
     for i in 0 1 2 3 4 5 6 7 8 9; do
     sed 's/^    //' <<!
     Key $MODKEY-$i # Select Tag
         wmiir xwrite /ctl view ${TAGS[$i]}
+    # Function to move frame to other tag
     Key $MODKEY-Shift-$i # Retag selected application
         wmiir xwrite /client/sel/tags ${TAGS[$i]} 
 !
@@ -335,13 +354,14 @@ wmiir write /ctl <<!
 wmiir xwrite /ctl view "1.www" 
 
 # Run apps if want
-run_app firefox
-# xxkb broken. I don't know why them won't work"
-#run_app xxkb
-run_app deluge
+#run_app firefox
+run_app xxkb
+run_app xbindkeys
+run_app yeahconsole
+#run_app deluge
 run_app osmo
-run_app thunderbird
-run_app tkabber
+#run_app thunderbird
+#run_app tkabber
 
 export WMII_FONT WMII_TERM
 export WMII_FOCUSCOLORS WMII_SELCOLORS WMII_NORMCOLORS
@@ -350,8 +370,6 @@ export WMII_FOCUSCOLORS WMII_SELCOLORS WMII_NORMCOLORS
 progsfile="$(wmiir namespace)/.proglist"
 action status &
 wi_proglist $PATH >$progsfile &
-
-# Setup Tag Bar
 
 # Placing bar to top.
 wmiir xwrite /ctl bar on top
